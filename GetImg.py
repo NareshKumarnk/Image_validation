@@ -32,7 +32,7 @@ def center_crop(img, dim):
     crop_img = img[mid_y - ch2:mid_y + ch2, mid_x - cw2:mid_x + cw2]
     return crop_img
 
-@app.route("/", methods=['POST'])
+@app.route("/imagevalidate", methods=['POST'])
 def two_img():
     file1 = request.files['image1'].read()
     file2 = request.files['image2'].read()
