@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 from flask import Flask, request, jsonify
 from skimage.metrics import structural_similarity as ssim
-import matplotlib.pyplot as plt
 
 app = Flask(__name__)
 
@@ -11,15 +10,8 @@ def process_image(file):
     img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
     return img
 
-def mse(imageA, imageB):
-    # NOTE: the two images must have the same dimension
-    err = np.sum((imageA.astype("float") - imageB.astype("float")) ** 2)
-    err /= float(imageA.shape[0] * imageA.shape[1])
-    return err
-
-def compare_images(imageA, imageB):
-    m = mse(imageA, imageB)
-    s = ssim(imageA, imageB)
+def compare_images(image_1, image_2):
+    s = ssim(image_1, image_2)
     return s
 
 def center_crop(img, dim):
@@ -51,7 +43,12 @@ def two_img():
     story_center = cv2.cvtColor(story_center, cv2.COLOR_BGR2GRAY)
 
     index = compare_images(original_center, story_center)
-    return jsonify({'index': index, 'h': h, 'w': w, 'shape': [original_center.shape[0], original_center.shape[1]]})
+
+    if index >= 0.80:
+        result = 'Similar'
+    else:
+        result = 'Not similar'
+    return jsonify({'index': index, 'message': result, 'shape': [original_center.shape[0], original_center.shape[1]]})
 
 if __name__ == "__main__":
-    app.run(debug=False,port=6000)
+    app.run(debug=False, port=6000)
