@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from flask import Flask, request, jsonify
 from skimage.metrics import structural_similarity as ssim
+from Image_processing import *
 
 app = Flask(__name__)
 
@@ -22,7 +23,18 @@ def center_crop(img, dim):
     mid_x, mid_y = int(width / 2), int(height / 2)
     cw2, ch2 = int(crop_width / 2), int(crop_height / 2)
     crop_img = img[mid_y - ch2:mid_y + ch2, mid_x - cw2:mid_x + cw2]
+
+    crop_img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
     return crop_img
+
+def validated(text, image1, image2):
+    for val in text.split('\n'):
+        if ('my' in val.lower()) or ('me' in val.lower()) and ('yesterday' not in val.lower()):
+            index = compare_images(image1, image2)
+            break
+        else:
+            index = 0
+    return index
 
 @app.route("/imagevalidate", methods=['POST'])
 def two_img():
@@ -31,6 +43,12 @@ def two_img():
     original = process_image(file=file1)
     story = process_image(file=file2)
 
+    cv2.imshow("Image", crop_img(story))
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+    text = image_to_text(story)
+    print(text)
     h1, w1, c1 = original.shape
     h2, w2, c2 = story.shape
     h = min(h1, h2)
@@ -39,16 +57,14 @@ def two_img():
     original_center = center_crop(original, (w, h))
     story_center = center_crop(story, (w, h))
 
-    original_center = cv2.cvtColor(original_center, cv2.COLOR_BGR2GRAY)
-    story_center = cv2.cvtColor(story_center, cv2.COLOR_BGR2GRAY)
+    score = validated(text=text, image1=original_center, image2=story_center)
 
-    index = compare_images(original_center, story_center)
-
-    if index >= 0.80:
+    if score >= 0.80:
         result = 'Similar'
     else:
         result = 'Not similar'
-    return jsonify({'index': index, 'message': result, 'shape': [original_center.shape[0], original_center.shape[1]]})
+
+    return jsonify({'index': score, 'message': result, 'shape': [original_center.shape[0], original_center.shape[1]]})
 
 if __name__ == "__main__":
     app.run(debug=False, port=6000)
