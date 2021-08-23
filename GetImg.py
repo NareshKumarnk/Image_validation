@@ -43,10 +43,6 @@ def two_img():
     original = process_image(file=file1)
     story = process_image(file=file2)
 
-    cv2.imshow("Image", crop_img(story))
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
     text = image_to_text(story)
     print(text)
     h1, w1, c1 = original.shape
@@ -61,10 +57,12 @@ def two_img():
 
     if score >= 0.80:
         result = 'Similar'
+    elif score == 0:
+        result = 'try again'
     else:
-        result = 'Not similar'
+        result = 'Not Similar'
 
     return jsonify({'index': score, 'message': result, 'shape': [original_center.shape[0], original_center.shape[1]]})
 
 if __name__ == "__main__":
-    app.run(debug=False, port=6000)
+    app.run(debug=False, port=7000)

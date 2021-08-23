@@ -3,9 +3,9 @@ import pytesseract
 
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
-def crop_img(img):
+def img_to_crop(img):
     h, w = img.shape[0], img.shape[1]
-    cropped_img = img[0:int(h/8), int((0 + w/0.5)):int(w/2)]
+    cropped_img = img[0:int(h/8), int((w/12)):int(w/2)]
     return cropped_img
 
 def img_to_gray(img):
@@ -14,6 +14,6 @@ def img_to_gray(img):
     return thresh
 
 def image_to_text(img):
-    pre_img = img_to_gray(crop_img(img))
+    pre_img = img_to_gray(img_to_crop(img))
     text = pytesseract.image_to_string(pre_img)
     return text
